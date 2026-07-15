@@ -97,16 +97,6 @@ This allows testing every endpoint directly from the browser without using exter
 
 ---
 
-## 📂 Project Structure
-
-```text
-.
-├── main.py
-├── README.md
-```
-
----
-
 ## ▶️ Installation
 
 ### Clone Repository
@@ -231,13 +221,28 @@ Access Swagger UI at:
 http://127.0.0.1:8000/docs
 ```
 
-### Add Screenshot Here
+### Swagger UI
 
 ![Swagger UI](docs/SwaggerUI.png)
+
+### Return Task List API
+
 ![Return Task List API](docs/Return_all_tasks.png)
+
+### Return Task API
+
 ![Return Task API](docs/Return_task.png)
+
+### Return Task API
+
 ![Create Task API](docs/Create_task.png)
+
+### Update Task API
+
 ![Update Task API](docs/Update_task.png)
+
+### Delete Task API
+
 ![Delete Task API](docs/Delete_task.png)
 
 ---
