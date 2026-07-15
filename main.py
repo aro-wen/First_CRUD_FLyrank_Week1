@@ -1,4 +1,5 @@
 from fastapi import FastAPI, HTTPException, status
+from pydantic import BaseModel
 
 tasks_list = [{
     "id" : "001",
@@ -16,6 +17,11 @@ tasks_list = [{
     "done" : False
 }
 ]
+
+class TaskModel(BaseModel):
+    id: str
+    title: str
+    done: bool
 
 app = FastAPI()
 
@@ -44,3 +50,16 @@ def return_task(id: str):
         detail=f"Task with {id} not found"
     )
 
+@app.post("/tasks", status_code=status.HTTP_201_CREATED)
+def create_task(tasks_data: TaskModel):
+    next_id = f"{len(tasks_list)+1:03d}"
+
+    new_task = {
+        "id" : next_id,
+        "title" : tasks_data.title,
+        "done" : False
+    }
+
+    tasks_list.append(new_task)
+    
+    return new_task
