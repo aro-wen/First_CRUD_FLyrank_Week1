@@ -19,7 +19,6 @@ tasks_list = [{
 ]
 
 class TaskModel(BaseModel):
-    id: str
     title: str
     done: bool
 
@@ -63,3 +62,30 @@ def create_task(tasks_data: TaskModel):
     tasks_list.append(new_task)
     
     return new_task
+
+@app.put("/tasks/{id}")
+def update_task(id: str, task:TaskModel):
+    for index, existing_task in enumerate(tasks_list):
+        if existing_task["id"] == id:
+            updated_task = {"id": id, **task.model_dump()}
+
+            tasks_list[index] = updated_task
+
+            return updated_task
+        
+    raise HTTPException(
+        status_code=status.HTTP_404_NOT_FOUND, 
+        detail=f"Task with {id} not found"
+    )
+
+@app.delete("/tasks/{id}", status_code=status.HTTP_204_NO_CONTENT)
+def delete_task(id: str):
+    for index, existing_task in enumerate(tasks_list):
+        if existing_task["id"] == id:
+            tasks_list.pop(index)
+            return
+        
+    raise HTTPException(
+        status_code=status.HTTP_404_NOT_FOUND, 
+        detail=f"Task with {id} not found"
+    )
