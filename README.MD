@@ -5,7 +5,7 @@
 ![Status](https://img.shields.io/badge/Status-Completed-success)
 ![License](https://img.shields.io/badge/License-MIT-yellow)
 ![FlyRank](https://img.shields.io/badge/FlyRank-BE--01-orange)
-![Repo Size](https://img.shields.io/github/repo-size/aro-wen/aro-wen/First_CRUD_FLyrank_Week1)
+![Repo Size](https://img.shields.io/github/repo-size/aro-wen/First_CRUD_FLyrank_Week1)
 ![Last Commit](https://img.shields.io/github/last-commit/aro-wen/First_CRUD_FLyrank_Week1)
 
 A simple CRUD (Create, Read, Update, Delete) REST API built using **FastAPI** and **Python**.
