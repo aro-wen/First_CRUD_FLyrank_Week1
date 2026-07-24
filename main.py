@@ -81,17 +81,14 @@ def return_task(id: int):
 
 @app.post("/tasks", status_code=status.HTTP_201_CREATED)
 def create_task(tasks_data: TaskModel):
-    next_id = f"{len(tasks_list)+1:03d}"
+    cursor.execute("""
+    INSERT INTO tasks(title, done)
+    VALUES (?, ?)
+    """, (tasks_data.title, tasks_data.done))
+    last_rowID = cursor.lastrowid
+    conn.commit()
 
-    new_task = {
-        "id" : next_id,
-        "title" : tasks_data.title,
-        "done" : False
-    }
-
-    tasks_list.append(new_task)
-    
-    return new_task
+    return return_task(last_rowID)
 
 @app.put("/tasks/{id}")
 def update_task(id: str, task:TaskModel):
