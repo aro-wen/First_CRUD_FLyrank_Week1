@@ -114,7 +114,7 @@ def update_task(id: int, task:TaskModel):
 @app.delete("/tasks/{id}", status_code=status.HTTP_204_NO_CONTENT)
 def delete_task(id: int):
     cursor.execute("""
-    DELETE FROM task
+    DELETE FROM tasks
     WHERE id = ?
     """, (id,))
     if cursor.rowcount == 0:
