@@ -91,28 +91,35 @@ def create_task(tasks_data: TaskModel):
     return return_task(last_rowID)
 
 @app.put("/tasks/{id}")
-def update_task(id: str, task:TaskModel):
-    for index, existing_task in enumerate(tasks_list):
-        if existing_task["id"] == id:
-            updated_task = {"id": id, **task.model_dump()}
+def update_task(id: int, task:TaskModel):
+    cursor.execute("""
+    UPDATE tasks
+    SET title = ?, done = ?
+    WHERE id = ?
+    """, (task.title, task.done, id))
 
-            tasks_list[index] = updated_task
+    if cursor.rowcount == 0:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND, 
+            detail=f"Task with {id} not found"
+        )
+    conn.commit()
 
-            return updated_task
-        
-    raise HTTPException(
-        status_code=status.HTTP_404_NOT_FOUND, 
-        detail=f"Task with {id} not found"
-    )
+    cursor.execute("SELECT * FROM tasks WHERE id = ?", (id,))
+    col = ("id", "title", "done")
+    row = cursor.fetchone()
+    updated_task = dict(zip(col, row))
+    return updated_task
 
 @app.delete("/tasks/{id}", status_code=status.HTTP_204_NO_CONTENT)
-def delete_task(id: str):
-    for index, existing_task in enumerate(tasks_list):
-        if existing_task["id"] == id:
-            tasks_list.pop(index)
-            return
-        
-    raise HTTPException(
-        status_code=status.HTTP_404_NOT_FOUND, 
-        detail=f"Task with {id} not found"
-    )
+def delete_task(id: int):
+    cursor.execute("""
+    DELETE FROM task
+    WHERE id = ?
+    """, (id,))
+    if cursor.rowcount == 0:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND, 
+            detail=f"Task with {id} not found"
+        )
+    conn.commit()
