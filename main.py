@@ -2,7 +2,7 @@ from fastapi import FastAPI, HTTPException, status
 from pydantic import BaseModel
 import sqlite3
 
-conn = sqlite3.connect("tasks.db")
+conn = sqlite3.connect("tasks.db", check_same_thread=False)
 cursor = conn.cursor()
 
 cursor.execute("""
@@ -50,18 +50,34 @@ def health():
 
 @app.get("/tasks")
 def return_task_list():
-    return tasks_list
+    cursor.execute("SELECT * FROM tasks")
+    rows = cursor.fetchall()
+    col = ("id", "title", "done")
+    task_list = []
+
+    for val in rows:
+        task = dict(zip(col, val))
+        task_list.append(task)
+
+    return task_list
+
+
 
 @app.get("/tasks/{id}")
-def return_task(id: str):
-    for task in tasks_list:
-        if task["id"] == id:
-            return task
-        
-    raise HTTPException(
-        status_code=status.HTTP_404_NOT_FOUND, 
-        detail=f"Task with {id} not found"
-    )
+def return_task(id: int):
+    cursor.execute("SELECT * FROM tasks WHERE id = ?", (id,))
+    row = cursor.fetchone()
+    col = ("id", "title", "done")
+
+    if not row:
+        raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND, 
+                detail=f"Task with {id} not found"
+            )
+    task_result = dict(zip(col,row))
+    return task_result
+
+    
 
 @app.post("/tasks", status_code=status.HTTP_201_CREATED)
 def create_task(tasks_data: TaskModel):
