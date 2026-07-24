@@ -1,105 +1,207 @@
-# 🚀 Task API - FlyRank Backend Assignment (BE-01)
+# 🚀 Task API - FlyRank Backend Assignment (BE-02)
 
 ![Python](https://img.shields.io/badge/Python-3.10+-blue)
 ![FastAPI](https://img.shields.io/badge/FastAPI-Framework-green)
+![SQLite](https://img.shields.io/badge/Database-SQLite-blue)
 ![Status](https://img.shields.io/badge/Status-Completed-success)
 ![License](https://img.shields.io/badge/License-MIT-yellow)
-![FlyRank](https://img.shields.io/badge/FlyRank-BE--01-orange)
-![Repo Size](https://img.shields.io/github/repo-size/aro-wen/First_CRUD_FLyrank_Week1)
-![Last Commit](https://img.shields.io/github/last-commit/aro-wen/First_CRUD_FLyrank_Week1)
+![FlyRank](https://img.shields.io/badge/FlyRank-BE--02-orange)
 
-A simple CRUD (Create, Read, Update, Delete) REST API built using **FastAPI** and **Python**.
+A simple CRUD (Create, Read, Update, Delete) REST API built using **FastAPI**, **Python**, and **SQLite**.
 
-This project was developed as part of the **FlyRank AI Internship – Backend AI Engineering Track (Week 2 Assignment)** to demonstrate the fundamentals of backend development, API design, HTTP methods, status codes, request validation, and interactive API documentation through Swagger UI.
+This project was developed as part of the **FlyRank AI Internship – Backend AI Engineering Track (Week 2 Assignment)** to demonstrate backend development fundamentals, REST API design, HTTP methods, status codes, request validation, SQL operations, database integration, and interactive API documentation through Swagger UI.
 
 ---
 
-## 📖 Assignment Overview
+# 📖 Assignment Overview
 
-The goal of this assignment was to build a small API capable of managing a to-do list using the four core CRUD operations:
+The goal of this assignment was to build a task management API while transitioning from temporary in-memory storage to persistent database storage.
+
+The API supports the four core CRUD operations:
 
 - Create tasks
 - Read tasks
 - Update tasks
 - Delete tasks
 
-The API stores data in memory using a Python list, allowing focus on API fundamentals before introducing databases in later assignments.
+The previous implementation stored tasks inside a Python list. This assignment replaces the in-memory storage layer with a real SQLite database while keeping the API endpoints unchanged.
+
+The main backend concept demonstrated in this project:
+
+> **APIs describe what an application does. Databases describe where application data is stored.**
+
+The client does not need to know whether the data comes from memory or a database.
 
 ---
 
-## 🛠️ Technologies Used
+# 🛠️ Technologies Used
 
-| Technology   | Purpose                       |
-| ------------ | ----------------------------- |
-| Python 3.10+ | Programming Language          |
-| FastAPI      | Backend Web Framework         |
-| Pydantic     | Request Validation            |
-| Uvicorn      | ASGI Server                   |
-| Swagger UI   | Interactive API Documentation |
+| Technology   | Purpose                          |
+| ------------ | -------------------------------- |
+| Python 3.10+ | Programming Language             |
+| FastAPI      | Backend Web Framework            |
+| Pydantic     | Request Validation               |
+| SQLite       | Persistent Database Storage      |
+| sqlite3      | Python SQLite Database Interface |
+| Uvicorn      | ASGI Development Server          |
+| Swagger UI   | Interactive API Documentation    |
 
 ---
 
-## 🧠 Thought Process
+# 🗄️ Database Implementation
 
-The implementation was built incrementally following the assignment stages:
+This project uses **SQLite** as the database layer.
 
-### Stage 1: Root & Health Endpoints
+SQLite was chosen because:
 
-Created basic endpoints to verify that the API was running correctly.
+- ✅ Zero installation required
+- ✅ No database server setup needed
+- ✅ Entire database exists in a single file
+- ✅ Data survives server restarts
+- ✅ Lightweight and suitable for small applications
 
-```http
-GET /
-GET /health
+The database file:
+
+```text
+tasks.db
 ```
 
-### Stage 2: Read Operations
+is automatically created when the application starts for the first time.
 
-Implemented retrieval of:
+The database contains one table:
 
-- All tasks
-- Individual tasks by ID
-
-Added proper `404 Not Found` handling for unknown task IDs.
-
-### Stage 3: Create Operation
-
-Implemented task creation using:
-
-```json
-{
-  "title": "New Task",
-  "done": false
-}
+```text
+tasks
 ```
 
-Used a Pydantic model to validate incoming request data and automatically generate API schemas.
+with the following structure:
 
-### Stage 4: Update & Delete Operations
+| Column | Type                |
+| ------ | ------------------- |
+| id     | INTEGER PRIMARY KEY |
+| title  | TEXT                |
+| done   | BOOLEAN             |
+
+The `tasks.db` file is usually added to `.gitignore` because:
+
+- Database files contain local application data
+- Each developer should generate their own database locally
+- Repository clones should start with a fresh database
+
+---
+
+# 🧠 Implementation Process
+
+The project was developed incrementally following the assignment stages.
+
+---
+
+## Stage 0: Create SQLite Database
+
+Replaced the Python list storage with SQLite.
 
 Implemented:
 
-- Task updates using PUT
-- Task deletion using DELETE
+- Automatic database creation
+- Table creation
+- Initial seed data insertion only when the table is empty
 
-Added proper status codes and error handling.
+Database initialization:
 
-### Stage 5: Swagger Documentation
-
-Leveraged FastAPI's built-in OpenAPI support.
-
-Interactive documentation is automatically available at:
-
-```text
-/docs
+```sql
+CREATE TABLE IF NOT EXISTS tasks(
+    id INTEGER PRIMARY KEY,
+    title TEXT NOT NULL,
+    done BOOLEAN DEFAULT 0
+);
 ```
 
-This allows testing every endpoint directly from the browser without using external tools.
+The database is stored inside:
+
+```text
+tasks.db
+```
 
 ---
 
-## ▶️ Installation
+# Stage 1: Read Operations Using SQL
 
-### Clone Repository
+Replaced Python list searching with SQL queries.
+
+Retrieve all tasks:
+
+```sql
+SELECT * FROM tasks;
+```
+
+Retrieve a single task:
+
+```sql
+SELECT * FROM tasks WHERE id = ?;
+```
+
+The API continues supporting:
+
+- Get all tasks
+- Get task by ID
+- 404 errors for missing tasks
+
+---
+
+# Stage 2: Create Operation Using SQL
+
+Replaced list append operations with database insertion.
+
+Implemented:
+
+```sql
+INSERT INTO tasks(title, done)
+VALUES (?, ?);
+```
+
+New tasks are now permanently stored and remain available after restarting the server.
+
+---
+
+# Stage 3: Update and Delete Operations Using SQL
+
+Replaced Python list modification with SQL commands.
+
+## Update Task
+
+```sql
+UPDATE tasks
+SET title = ?, done = ?
+WHERE id = ?;
+```
+
+## Delete Task
+
+```sql
+DELETE FROM tasks
+WHERE id = ?;
+```
+
+The API behavior remained unchanged while the storage layer changed.
+
+---
+
+# Stage 4: Exploring SQLite
+
+The database was manually inspected using **DB Browser for SQLite**.
+
+The following SQL operations were tested:
+
+- Retrieve all tasks
+- Filter completed tasks
+- Update database records
+- Delete database records
+
+---
+
+# ▶️ Installation
+
+## Clone Repository
 
 ```bash
 git clone https://github.com/YOUR_USERNAME/task-api.git
@@ -107,37 +209,53 @@ git clone https://github.com/YOUR_USERNAME/task-api.git
 cd task-api
 ```
 
-### Create Virtual Environment
+---
+
+## Create Virtual Environment
 
 ```bash
 python -m venv venv
 ```
 
-### Activate Environment
+---
 
-Windows:
+## Activate Environment
+
+### Windows
 
 ```bash
 venv\Scripts\activate
 ```
 
-Mac/Linux:
+### Mac/Linux
 
 ```bash
 source venv/bin/activate
 ```
 
-### Install Dependencies
+---
+
+## Install Dependencies
 
 ```bash
 pip install "fastapi[standard]"
 ```
 
-### Run Server
+---
+
+# 🚀 Running the Project
+
+Start the FastAPI development server:
 
 ```bash
 fastapi dev main.py --port 8000
 ```
+
+When the application starts:
+
+- SQLite database is created automatically
+- `tasks.db` is generated if it does not exist
+- Seed tasks are inserted only when the database is empty
 
 Server runs at:
 
@@ -147,7 +265,7 @@ http://127.0.0.1:8000
 
 ---
 
-## 📋 Available Endpoints
+# 📋 Available API Endpoints
 
 | Method | Endpoint      | Description     |
 | ------ | ------------- | --------------- |
@@ -161,24 +279,26 @@ http://127.0.0.1:8000
 
 ---
 
-## 📦 Sample Response
+# 📦 Sample Response
 
-### GET /tasks
+## GET `/tasks`
+
+Example response:
 
 ```json
 [
   {
-    "id": "001",
+    "id": 1,
     "title": "Finish Claude 101 Anthropic Course",
     "done": false
   },
   {
-    "id": "002",
+    "id": 2,
     "title": "Finish Backend Assignment 1: Building First CRUD API",
     "done": false
   },
   {
-    "id": "003",
+    "id": 3,
     "title": "Finish AI Fluency Assignment 1: AI Workflow Audit and Tool Setup",
     "done": false
   }
@@ -187,9 +307,9 @@ http://127.0.0.1:8000
 
 ---
 
-## 🔍 Example cURL Request
+# 🔍 Example cURL Request
 
-Create a Task:
+## Create a Task
 
 ```bash
 curl -i -X POST http://127.0.0.1:8000/tasks \
@@ -201,9 +321,11 @@ Example Response:
 
 ```http
 HTTP/1.1 201 Created
+```
 
+```json
 {
-  "id": "004",
+  "id": 4,
   "title": "Study FastAPI",
   "done": false
 }
@@ -211,57 +333,96 @@ HTTP/1.1 201 Created
 
 ---
 
-## 📑 Swagger UI
+# 📑 Swagger UI Documentation
 
-FastAPI automatically generates interactive API documentation.
+FastAPI automatically generates interactive API documentation through OpenAPI.
 
-Access Swagger UI at:
+Access Swagger UI:
 
 ```text
 http://127.0.0.1:8000/docs
 ```
 
-### Swagger UI
+Screenshots:
+
+## Swagger UI
 
 ![Swagger UI](docs/SwaggerUI.png)
 
-### Return Task List API
+## Return All Tasks
 
-![Return Task List API](docs/Return_all_tasks.png)
+![Return All Tasks](docs/Return_all_tasks.png)
 
-### Return Task API
+## Return Single Task
 
-![Return Task API](docs/Return_task.png)
+![Return Task](docs/Return_task.png)
 
-### Return Task API
+## Create Task
 
-![Create Task API](docs/Create_task.png)
+![Create Task](docs/Create_task.png)
 
-### Update Task API
+## Update Task
 
-![Update Task API](docs/Update_task.png)
+![Update Task](docs/Update_task.png)
 
-### Delete Task API
+## Delete Task
 
-![Delete Task API](docs/Delete_task.png)
-
----
-
-## ⚠️ Current Limitations
-
-This project intentionally stores data in memory.
-
-Because no database is used:
-
-- Tasks disappear when the server restarts.
-- Data is not persisted between sessions.
-- IDs are generated based on the current list length.
-
-This limitation helps demonstrate why databases are introduced in real-world backend systems.
+![Delete Task](docs/Delete_task.png)
 
 ---
 
-## ✅ Requirements Checklist
+# 🗃️ Database View
+
+The SQLite database was inspected using **DB Browser for SQLite**.
+
+The screenshot below shows the generated database file and stored task records.
+
+![SQLite Database View](docs/SQLite_Database.png)
+
+---
+
+# 🔎 Example SQL Query (Stage 4)
+
+One SQL query executed manually inside DB Browser for SQLite:
+
+```sql
+SELECT * FROM tasks;
+```
+
+Example output:
+
+| id  | title                                                | done |
+| --- | ---------------------------------------------------- | ---- |
+| 1   | Finish Claude 101 Anthropic Course                   | 0    |
+| 2   | Finish Backend Assignment 1: Building First CRUD API | 0    |
+| 3   | Finish AI Fluency Assignment 1                       | 0    |
+
+This confirmed that the API and database were using the same persistent data source.
+
+---
+
+# ⚠️ Current Limitations
+
+Although this project now uses persistent storage, it is still designed as a learning project.
+
+Current limitations:
+
+- SQLite is not intended for large production workloads
+- No authentication or authorization system
+- No database migration system
+- Direct SQL queries instead of ORM
+
+Future improvements:
+
+- PostgreSQL integration
+- SQLAlchemy or SQLModel ORM
+- Authentication system
+- Automated testing
+- Cloud deployment
+
+---
+
+# ✅ Requirements Checklist
 
 - [x] FastAPI server running locally
 - [x] Root endpoint
@@ -271,34 +432,41 @@ This limitation helps demonstrate why databases are introduced in real-world bac
 - [x] Create task
 - [x] Update task
 - [x] Delete task
-- [x] Proper status codes
+- [x] HTTP status code handling
 - [x] 404 error handling
 - [x] Request validation using Pydantic
 - [x] Swagger UI documentation
+- [x] SQLite database integration
+- [x] Persistent data storage
+- [x] SQL CRUD operations
 
 ---
 
-## 🎯 Learning Outcomes
+# 🎯 Learning Outcomes
 
 Through this assignment I learned:
 
 - How REST APIs work
-- CRUD operations
-- HTTP methods and status codes
+- CRUD operations using HTTP methods
+- HTTP status codes
 - Path parameters
-- Request validation with Pydantic
+- Request validation using Pydantic
 - Error handling using HTTPException
 - FastAPI routing
 - Swagger/OpenAPI documentation
-- Backend development fundamentals
+- SQL fundamentals
+- SQLite database management
+- Connecting APIs with databases
+- Database persistence concepts
+- Separation between API design and storage implementation
 
 ---
 
-## 👩‍💻 Author
+# 👩‍💻 Author
 
 **Leila Arowen A. Dumindin**
 
-BS Computer Engineering
+BS Computer Engineering  
 Pamantasan ng Lungsod ng Maynila (PLM)
 
 FlyRank AI Internship – Backend AI Engineering Track
