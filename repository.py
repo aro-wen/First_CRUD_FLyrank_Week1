@@ -13,7 +13,7 @@ def get_all_tasks():
     return task_list
 
 def get_task_by_id(id: int):
-    cursor.execute("SELECT * FROM tasks WHERE id = ?", (id,))
+    cursor.execute("SELECT * FROM tasks WHERE id = %s", (id,))
     row = cursor.fetchone()
     col = ("id", "title", "done")
 
@@ -26,19 +26,20 @@ def get_task_by_id(id: int):
 def create_task(tasks_data):
     cursor.execute("""
     INSERT INTO tasks(title, done)
-    VALUES (?, ?)
+    VALUES (%s, %s)
+    RETURNING id
     """, (tasks_data.title, tasks_data.done))
+
+    last_rowID = cursor.fetchone()[0]
     conn.commit()
-    
-    last_rowID = cursor.lastrowid
-    
+
     return get_task_by_id(last_rowID)
 
 def update_task(id:int, task):
     cursor.execute("""
     UPDATE tasks
-    SET title = ?, done = ?
-    WHERE id = ?
+    SET title = %s, done = %s
+    WHERE id = %s
     """, (task.title, task.done, id))
 
     if cursor.rowcount == 0:
@@ -51,7 +52,7 @@ def update_task(id:int, task):
 def delete_task(id):
     cursor.execute("""
     DELETE FROM tasks
-    WHERE id = ?
+    WHERE id = %s
     """, (id,))
 
     if cursor.rowcount == 0:
@@ -59,3 +60,12 @@ def delete_task(id):
 
     conn.commit()
     return True
+
+def check_db():
+    try:
+        cursor.execute("SELECT 1")
+        result = cursor.fetchone()
+
+        return result[0] == 1
+    except Exception:
+        return False

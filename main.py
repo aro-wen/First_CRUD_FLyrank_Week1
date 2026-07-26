@@ -1,9 +1,13 @@
 from fastapi import FastAPI, HTTPException, status
-import repository as repository
+from seeding import seed_tasks
 import service
 from models import TaskModel
 
 app = FastAPI()
+
+@app.on_event("startup")
+def startup():
+    seed_tasks()
 
 @app.get("/")
 async def root():
@@ -13,7 +17,12 @@ async def root():
 
 @app.get("/health")
 def health():
-    return {"status": "Ok"}
+    db_status = service.check_db()
+
+    return{
+        "status:" "ok",
+        "db:" "ok" if db_status else "down"
+    }
 
 @app.get("/tasks")
 def return_task_list():

@@ -1,4 +1,4 @@
-import repository
+import repository as repository
 
 def get_all_tasks():
     return repository.get_all_tasks()
@@ -14,3 +14,6 @@ def update_task(id:int, task):
 
 def delete_task(id:int):
     return repository.delete_task(id)
+
+def check_db():
+    return repository.check_db()
