@@ -1,201 +1,296 @@
-# 🚀 Task API - FlyRank Backend Assignment (BE-02)
+# 🚀 Task API - FlyRank Backend Assignment (BE-03)
 
 ![Python](https://img.shields.io/badge/Python-3.10+-blue)
 ![FastAPI](https://img.shields.io/badge/FastAPI-Framework-green)
-![SQLite](https://img.shields.io/badge/Database-SQLite-blue)
+![PostgreSQL](https://img.shields.io/badge/Database-PostgreSQL-blue)
+![Docker](https://img.shields.io/badge/Containerized-Docker-2496ED)
 ![Status](https://img.shields.io/badge/Status-Completed-success)
 ![License](https://img.shields.io/badge/License-MIT-yellow)
-![FlyRank](https://img.shields.io/badge/FlyRank-BE--02-orange)
+![FlyRank](https://img.shields.io/badge/FlyRank-BE--03-orange)
 
-A simple CRUD (Create, Read, Update, Delete) REST API built using **FastAPI**, **Python**, and **SQLite**.
+A RESTful CRUD (Create, Read, Update, Delete) API built using **FastAPI**, **PostgreSQL**, **Docker**, and **Python**.
 
-This project was developed as part of the **FlyRank AI Internship – Backend AI Engineering Track (Week 2 Assignment)** to demonstrate backend development fundamentals, REST API design, HTTP methods, status codes, request validation, SQL operations, database integration, and interactive API documentation through Swagger UI.
+This project was developed as part of the **FlyRank AI Internship – Backend AI Engineering Track (Week 3 Assignment)** to demonstrate database containerization, PostgreSQL integration, environment variable management, SQL persistence, layered backend architecture, and API health monitoring.
 
 ---
 
 # 📖 Assignment Overview
 
-The goal of this assignment was to build a task management API while transitioning from temporary in-memory storage to persistent database storage.
+The goal of this assignment was to migrate an existing FastAPI application from SQLite to PostgreSQL while preserving the API contract and endpoint behavior.
 
-The API supports the four core CRUD operations:
+The application supports:
 
 - Create tasks
 - Read tasks
 - Update tasks
 - Delete tasks
 
-The previous implementation stored tasks inside a Python list. This assignment replaces the in-memory storage layer with a real SQLite database while keeping the API endpoints unchanged.
+The migration demonstrates a key backend engineering principle:
 
-The main backend concept demonstrated in this project:
+> APIs define what an application does. Databases define where application data is stored.
 
-> **APIs describe what an application does. Databases describe where application data is stored.**
+By separating API routes, business logic, and database access into different layers, the application can change its storage implementation without affecting the API interface.
 
-The client does not need to know whether the data comes from memory or a database.
+---
+
+# 🏗️ Project Architecture
+
+The project follows a layered backend architecture:
+
+```text
+Client
+  ↓
+FastAPI Routes
+  ↓
+Service Layer
+  ↓
+Repository Layer
+  ↓
+PostgreSQL Database
+```
+
+### Layer Responsibilities
+
+| Layer      | Responsibility                     |
+| ---------- | ---------------------------------- |
+| Routes     | Handle HTTP requests and responses |
+| Services   | Application and business logic     |
+| Repository | Database queries and persistence   |
+| Database   | PostgreSQL connection management   |
+
+This separation allows the database implementation to change while keeping the API endpoints unchanged.
 
 ---
 
 # 🛠️ Technologies Used
 
-| Technology   | Purpose                          |
-| ------------ | -------------------------------- |
-| Python 3.10+ | Programming Language             |
-| FastAPI      | Backend Web Framework            |
-| Pydantic     | Request Validation               |
-| SQLite       | Persistent Database Storage      |
-| sqlite3      | Python SQLite Database Interface |
-| Uvicorn      | ASGI Development Server          |
-| Swagger UI   | Interactive API Documentation    |
+| Technology     | Purpose                       |
+| -------------- | ----------------------------- |
+| Python 3.10+   | Programming Language          |
+| FastAPI        | Backend Web Framework         |
+| Pydantic       | Request Validation            |
+| PostgreSQL     | Relational Database           |
+| Psycopg        | PostgreSQL Driver             |
+| Docker         | Containerization              |
+| Docker Compose | Multi-container Management    |
+| Python Dotenv  | Environment Variable Loading  |
+| Swagger UI     | Interactive API Documentation |
 
 ---
 
-# 🗄️ Database Implementation
+# 🗄️ PostgreSQL Database
 
-This project uses **SQLite** as the database layer.
+This project uses PostgreSQL running inside a Docker container.
 
-SQLite was chosen because:
+Benefits:
 
-- ✅ Zero installation required
-- ✅ No database server setup needed
-- ✅ Entire database exists in a single file
-- ✅ Data survives server restarts
-- ✅ Lightweight and suitable for small applications
+- Persistent data storage
+- Production-grade relational database
+- SQL standards compliance
+- Isolated development environment
+- Easy onboarding for other developers
 
-The database file:
-
-```text
-tasks.db
-```
-
-is automatically created when the application starts for the first time.
-
-The database contains one table:
-
-```text
-tasks
-```
-
-with the following structure:
-
-| Column | Type                |
-| ------ | ------------------- |
-| id     | INTEGER PRIMARY KEY |
-| title  | TEXT                |
-| done   | BOOLEAN             |
-
-The `tasks.db` file is usually added to `.gitignore` because:
-
-- Database files contain local application data
-- Each developer should generate their own database locally
-- Repository clones should start with a fresh database
-
----
-
-# 🧠 Implementation Process
-
-The project was developed incrementally following the assignment stages.
-
----
-
-## Stage 0: Create SQLite Database
-
-Replaced the Python list storage with SQLite.
-
-Implemented:
-
-- Automatic database creation
-- Table creation
-- Initial seed data insertion only when the table is empty
-
-Database initialization:
+Database schema:
 
 ```sql
 CREATE TABLE IF NOT EXISTS tasks(
-    id INTEGER PRIMARY KEY,
+    id SERIAL PRIMARY KEY,
     title TEXT NOT NULL,
-    done BOOLEAN DEFAULT 0
+    done BOOLEAN DEFAULT FALSE
 );
 ```
 
-The database is stored inside:
+The application stores task records in a PostgreSQL database named:
 
 ```text
-tasks.db
+tasks_db
 ```
 
 ---
 
-# Stage 1: Read Operations Using SQL
+# 🐳 Docker Setup
 
-Replaced Python list searching with SQL queries.
+PostgreSQL is containerized using Docker Compose.
 
-Retrieve all tasks:
-
-```sql
-SELECT * FROM tasks;
+```yaml
+services:
+  db:
+    image: postgres:15-alpine
+    ports:
+      - "5432:5432"
 ```
 
-Retrieve a single task:
+Benefits of containerization:
 
-```sql
-SELECT * FROM tasks WHERE id = ?;
-```
-
-The API continues supporting:
-
-- Get all tasks
-- Get task by ID
-- 404 errors for missing tasks
+- No local PostgreSQL installation required
+- Consistent environment across machines
+- Simplified project setup
+- Easy database recreation
+- Persistent storage through Docker volumes
 
 ---
 
-# Stage 2: Create Operation Using SQL
+# 🔐 Environment Variables
 
-Replaced list append operations with database insertion.
+Database credentials are managed using environment variables.
 
-Implemented:
+Example:
 
-```sql
-INSERT INTO tasks(title, done)
-VALUES (?, ?);
+```env
+POSTGRES_DB=tasks_db
+POSTGRES_USER=postgres
+POSTGRES_PASSWORD=postgres123
+DATABASE_URL=postgres://postgres:postgres123@localhost:5432/tasks_db
 ```
 
-New tasks are now permanently stored and remain available after restarting the server.
+The project includes:
+
+```text
+.env.example
+```
+
+The actual:
+
+```text
+.env
+```
+
+file is excluded from version control to prevent exposing credentials.
 
 ---
 
-# Stage 3: Update and Delete Operations Using SQL
+# 📝 Database Initialization
 
-Replaced Python list modification with SQL commands.
+Database creation is automated through:
 
-## Update Task
-
-```sql
-UPDATE tasks
-SET title = ?, done = ?
-WHERE id = ?;
+```text
+sql/init.sql
 ```
 
-## Delete Task
+Contents:
 
 ```sql
-DELETE FROM tasks
-WHERE id = ?;
+CREATE TABLE IF NOT EXISTS tasks(
+    id SERIAL PRIMARY KEY,
+    title TEXT NOT NULL,
+    done BOOLEAN DEFAULT FALSE
+);
 ```
 
-The API behavior remained unchanged while the storage layer changed.
+The initialization script is mounted into PostgreSQL through:
+
+```yaml
+volumes:
+  - ./sql/init.sql:/docker-entrypoint-initdb.d/init.sql
+```
+
+This allows the database schema to be automatically created when PostgreSQL starts for the first time.
 
 ---
 
-# Stage 4: Exploring SQLite
+# 🌱 Seed Data
 
-The database was manually inspected using **DB Browser for SQLite**.
+The application automatically inserts example tasks when the database is empty.
 
-The following SQL operations were tested:
+Seed tasks:
 
-- Retrieve all tasks
-- Filter completed tasks
-- Update database records
-- Delete database records
+- Finish Claude 101 Anthropic Course
+- Finish Backend Assignment 1: Building First CRUD API
+- Finish AI Fluency Assignment 1: AI Workflow Audit and Tool Setup
+
+The seeding process only runs when:
+
+```sql
+SELECT COUNT(*) FROM tasks;
+```
+
+returns:
+
+```text
+0
+```
+
+This prevents duplicate seed records.
+
+---
+
+# ❤️ Health Check Endpoint
+
+The project includes a database-aware health check.
+
+Endpoint:
+
+```http
+GET /health
+```
+
+The endpoint verifies PostgreSQL connectivity using:
+
+```sql
+SELECT 1;
+```
+
+Example response:
+
+```json
+{
+  "status": "ok",
+  "db": "ok"
+}
+```
+
+This confirms that:
+
+- FastAPI is running
+- PostgreSQL is reachable
+- SQL queries can be executed successfully
+
+Health checks like this are commonly used in production deployments and monitoring systems.
+
+---
+
+# 🧠 Migration from SQLite to PostgreSQL
+
+A major objective of this assignment was migrating the storage layer from SQLite to PostgreSQL.
+
+Changes made:
+
+| SQLite              | PostgreSQL           |
+| ------------------- | -------------------- |
+| sqlite3             | psycopg              |
+| tasks.db file       | PostgreSQL container |
+| ? placeholders      | %s placeholders      |
+| lastrowid           | RETURNING id         |
+| Local database file | Dockerized database  |
+
+The API endpoints remained unchanged throughout the migration.
+
+This demonstrates the value of the Repository Pattern and separation of concerns.
+
+---
+
+# 📂 Project Structure
+
+```text
+task-api/
+│
+├── data/
+├── docs/
+├── sql/
+│   └── init.sql
+│
+├── database.py
+├── repository.py
+├── service.py
+├── seeding.py
+├── models.py
+├── main.py
+│
+├── docker-compose.yml
+├── .env.example
+├── .gitignore
+├── README.md
+```
 
 ---
 
@@ -227,7 +322,7 @@ python -m venv venv
 venv\Scripts\activate
 ```
 
-### Mac/Linux
+### Linux / macOS
 
 ```bash
 source venv/bin/activate
@@ -238,26 +333,52 @@ source venv/bin/activate
 ## Install Dependencies
 
 ```bash
-pip install "fastapi[standard]"
+pip install fastapi[standard]
+pip install psycopg[binary]
+pip install python-dotenv
+```
+
+---
+
+## Configure Environment Variables
+
+Create:
+
+```text
+.env
+```
+
+based on:
+
+```text
+.env.example
 ```
 
 ---
 
 # 🚀 Running the Project
 
-Start the FastAPI development server:
+## Start PostgreSQL
 
 ```bash
-fastapi dev main.py --port 8000
+docker compose up -d
 ```
 
-When the application starts:
+Verify container:
 
-- SQLite database is created automatically
-- `tasks.db` is generated if it does not exist
-- Seed tasks are inserted only when the database is empty
+```bash
+docker ps
+```
 
-Server runs at:
+---
+
+## Start FastAPI
+
+```bash
+fastapi dev main.py
+```
+
+Application URL:
 
 ```text
 http://127.0.0.1:8000
@@ -279,11 +400,9 @@ http://127.0.0.1:8000
 
 ---
 
-# 📦 Sample Response
+# 📦 Example Response
 
 ## GET `/tasks`
-
-Example response:
 
 ```json
 [
@@ -309,24 +428,20 @@ Example response:
 
 # 🔍 Example cURL Request
 
-## Create a Task
+## Create Task
 
 ```bash
 curl -i -X POST http://127.0.0.1:8000/tasks \
 -H "Content-Type: application/json" \
--d "{\"title\":\"Study FastAPI\",\"done\":false}"
+-d "{\"title\":\"Study PostgreSQL\",\"done\":false}"
 ```
 
 Example Response:
 
-```http
-HTTP/1.1 201 Created
-```
-
 ```json
 {
   "id": 4,
-  "title": "Study FastAPI",
+  "title": "Study PostgreSQL",
   "done": false
 }
 ```
@@ -335,7 +450,7 @@ HTTP/1.1 201 Created
 
 # 📑 Swagger UI Documentation
 
-FastAPI automatically generates interactive API documentation through OpenAPI.
+FastAPI automatically generates OpenAPI documentation.
 
 Access Swagger UI:
 
@@ -371,74 +486,68 @@ Screenshots:
 
 ---
 
-# 🗃️ Database View
+# 🗃️ PostgreSQL Verification
 
-The SQLite database was inspected using **DB Browser for SQLite**.
+The database was verified through PostgreSQL and Docker.
 
-The screenshot below shows the generated database file and stored task records.
+Commands used:
 
-![SQLite Database View](docs/SQLite_Database.png)
-
----
-
-# 🔎 Example SQL Query (Stage 4)
-
-One SQL query executed manually inside DB Browser for SQLite:
+```sql
+\dt
+```
 
 ```sql
 SELECT * FROM tasks;
 ```
 
-Example output:
+These confirmed:
 
-| id  | title                                                | done |
-| --- | ---------------------------------------------------- | ---- |
-| 1   | Finish Claude 101 Anthropic Course                   | 0    |
-| 2   | Finish Backend Assignment 1: Building First CRUD API | 0    |
-| 3   | Finish AI Fluency Assignment 1                       | 0    |
-
-This confirmed that the API and database were using the same persistent data source.
+- Table creation
+- Seed data insertion
+- Successful PostgreSQL connectivity
 
 ---
 
 # ⚠️ Current Limitations
 
-Although this project now uses persistent storage, it is still designed as a learning project.
-
 Current limitations:
 
-- SQLite is not intended for large production workloads
-- No authentication or authorization system
-- No database migration system
+- No authentication or authorization
+- No automated testing suite
+- No database migration tooling
 - Direct SQL queries instead of ORM
+- Single PostgreSQL instance
 
 Future improvements:
 
-- PostgreSQL integration
-- SQLAlchemy or SQLModel ORM
-- Authentication system
-- Automated testing
-- Cloud deployment
+- SQLAlchemy or SQLModel
+- JWT Authentication
+- Unit and Integration Testing
+- CI/CD Pipeline
+- Cloud Deployment
+- Redis Caching
+- Database Migrations with Alembic
 
 ---
 
 # ✅ Requirements Checklist
 
-- [x] FastAPI server running locally
-- [x] Root endpoint
-- [x] Health endpoint
+- [x] FastAPI server
+- [x] PostgreSQL integration
+- [x] Dockerized database
+- [x] Environment variable configuration
+- [x] Database initialization script
+- [x] Automatic seed data
+- [x] Health check endpoint
 - [x] Read all tasks
 - [x] Read single task
 - [x] Create task
 - [x] Update task
 - [x] Delete task
-- [x] HTTP status code handling
-- [x] 404 error handling
-- [x] Request validation using Pydantic
+- [x] HTTP status handling
+- [x] Request validation
 - [x] Swagger UI documentation
-- [x] SQLite database integration
-- [x] Persistent data storage
-- [x] SQL CRUD operations
+- [x] Persistent storage using Docker volumes
 
 ---
 
@@ -446,19 +555,18 @@ Future improvements:
 
 Through this assignment I learned:
 
-- How REST APIs work
-- CRUD operations using HTTP methods
-- HTTP status codes
-- Path parameters
-- Request validation using Pydantic
-- Error handling using HTTPException
-- FastAPI routing
-- Swagger/OpenAPI documentation
-- SQL fundamentals
-- SQLite database management
-- Connecting APIs with databases
-- Database persistence concepts
-- Separation between API design and storage implementation
+- PostgreSQL fundamentals
+- Docker and Docker Compose
+- Environment variable management
+- Database containerization
+- Repository pattern
+- Layered backend architecture
+- SQL CRUD operations
+- Database initialization scripts
+- Health check endpoints
+- Database persistence using volumes
+- Migrating applications from SQLite to PostgreSQL
+- Separation of concerns in backend systems
 
 ---
 
@@ -466,7 +574,7 @@ Through this assignment I learned:
 
 **Leila Arowen A. Dumindin**
 
-BS Computer Engineering  
+BS Computer Engineering
 Pamantasan ng Lungsod ng Maynila (PLM)
 
 FlyRank AI Internship – Backend AI Engineering Track
